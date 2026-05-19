@@ -1,0 +1,37 @@
+# Generic system dashboard.
+# No external deps beyond coreutils + ps.
+
+[app]
+title = "System Watch"
+refresh = 5
+
+[[panels]]
+id = "load"
+title = "Load"
+icon = "L"
+command = "uptime"
+parser = "raw"
+
+[[panels]]
+id = "mem"
+title = "Memory"
+icon = "M"
+command = "free -h"
+parser = "lines"
+
+[[panels]]
+id = "top"
+title = "Top Processes (CPU)"
+icon = "T"
+command = "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -11"
+parser = "regex"
+pattern = "^\\s*(?P<pid>\\d+)\\s+(?P<cpu>\\S+)\\s+(?P<mem>\\S+)\\s+(?P<cmd>.+)$"
+columns = ["pid", "cpu", "mem", "cmd"]
+
+[[panels]]
+id = "users"
+title = "Logged Users"
+icon = "U"
+command = "who"
+parser = "lines"
+refresh = 30

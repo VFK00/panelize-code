@@ -1,0 +1,39 @@
+# Kubernetes dashboard.
+# Pods, nodes, services. Adjust `kubectl` context beforehand.
+
+[app]
+title = "Kubernetes"
+refresh = 10
+
+[[panels]]
+id = "pods"
+title = "Pods"
+icon = "K"
+command = "kubectl get pods -o json"
+parser = "json"
+template = "{metadata.name}\t{status.phase}"
+columns = ["Name", "Phase"]
+
+[[panels]]
+id = "nodes"
+title = "Nodes"
+icon = "N"
+command = "kubectl get nodes --no-headers"
+parser = "regex"
+pattern = "^(?P<name>\\S+)\\s+(?P<status>\\S+)\\s+(?P<role>\\S+)\\s+(?P<age>\\S+)\\s+(?P<version>\\S+)"
+columns = ["name", "status", "role", "age", "version"]
+refresh = 60
+
+[[panels]]
+id = "services"
+title = "Services"
+icon = "S"
+command = "kubectl get svc --no-headers"
+parser = "lines"
+
+[[panels]]
+id = "events"
+title = "Recent Events"
+icon = "E"
+command = "kubectl get events --sort-by=.lastTimestamp | tail -10"
+parser = "lines"

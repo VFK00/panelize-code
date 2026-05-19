@@ -1,0 +1,44 @@
+# DevOps / SRE dashboard.
+# Docker containers, disk, load average, listening ports.
+
+[app]
+title = "Ops Watch"
+refresh = 15
+
+[[panels]]
+id = "containers"
+title = "Containers"
+icon = "C"
+command = ["docker", "ps", "--format", "{{.Names}}\t{{.Status}}\t{{.Image}}"]
+parser = "tsv"
+columns = ["Name", "Status", "Image"]
+
+[[panels]]
+id = "disk"
+title = "Disk"
+icon = "D"
+command = "df -h --output=target,pcent,avail / /home /tmp 2>/dev/null"
+parser = "regex"
+pattern = "^(?P<mount>\\S+)\\s+(?P<pct>\\S+)\\s+(?P<avail>\\S+)$"
+columns = ["mount", "pct", "avail"]
+
+[[panels]]
+id = "load"
+title = "Load Avg"
+icon = "L"
+command = "uptime"
+parser = "raw"
+
+[[panels]]
+id = "ports"
+title = "Listening Ports"
+icon = "P"
+command = "ss -tlnH 2>/dev/null | awk '{print $4}' | sort -u | head -15"
+parser = "lines"
+refresh = 60
+
+[[actions]]
+name = "docker prune"
+command = "docker system prune -f"
+shortcut = "p"
+confirm = true

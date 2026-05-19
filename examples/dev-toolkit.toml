@@ -1,0 +1,46 @@
+# Developer toolkit dashboard.
+# Shows git status, recent commits, branch, npm scripts.
+
+[app]
+title = "Dev Toolkit"
+refresh = 20
+theme = "panelize"
+
+[[panels]]
+id = "git-status"
+title = "Git Status"
+icon = "G"
+command = "git status --short"
+parser = "lines"
+
+[[panels]]
+id = "branch"
+title = "Branch"
+icon = "B"
+command = "git branch --show-current"
+parser = "raw"
+
+[[panels]]
+id = "log"
+title = "Recent Commits"
+icon = "L"
+command = "git log --oneline -10"
+parser = "lines"
+
+[[panels]]
+id = "stash"
+title = "Stash"
+icon = "S"
+command = "git stash list"
+parser = "lines"
+refresh = 60
+
+[[actions]]
+name = "git fetch"
+command = "git fetch --all --prune"
+shortcut = "f"
+
+[[actions]]
+name = "git pull"
+command = "git pull --ff-only"
+shortcut = "u"
