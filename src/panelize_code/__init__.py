@@ -3,4 +3,4 @@
 Define panels in TOML, point them at shell commands, get a live TUI.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
