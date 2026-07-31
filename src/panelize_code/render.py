@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 
-from rich.console import Console, Group
+from rich.console import Console, Group, RenderableType
 from rich.panel import Panel
 from rich.table import Table
 
@@ -41,7 +41,7 @@ def render_snapshot(config: DashboardConfig, console: Console | None = None) -> 
             any_failed = True
 
         if not snap.ok:
-            body: object = f"[red]✗ {snap.error}[/red]"
+            body: RenderableType = f"[red]✗ {snap.error}[/red]"
         elif not snap.rows:
             body = "[dim]no output[/dim]"
         else:

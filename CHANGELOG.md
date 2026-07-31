@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The TUI's global auto-refresh never fired: the handler was named `_auto_refresh`,
+  which Textual's `DOMNode.__init__` shadows with an instance attribute of the same
+  name. `set_interval` silently received `None` instead of a callable, so the timer
+  ran and called nothing. Per-panel refresh intervals were unaffected (they go
+  through a lambda). Renamed to `_on_refresh_tick`, with two regression tests.
+
+### Changed
+
+- `panelize show` now runs panels concurrently (bounded thread pool, declaration
+  order preserved in the output). Serial execution paid the sum of every panel's
+  latency — measured on four 0.4s commands: **1.6s → 0.63s**. The TUI already ran
+  one worker per panel; only the snapshot mode was affected.
+- CI now fails on type errors: `continue-on-error` removed from the mypy step.
+
 ## [0.1.0] - 2026-05-19
 
 First public release.
@@ -40,12 +56,3 @@ First public release.
 
 [Unreleased]: https://github.com/VFK00/panelize-code/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/VFK00/panelize-code/releases/tag/v0.1.0
-
-## [Unreleased]
-
-### Changed
-
-- `panelize show` now runs panels concurrently (bounded thread pool, declaration
-  order preserved in the output). Serial execution paid the sum of every panel's
-  latency — measured on four 0.4s commands: **1.6s → 0.63s**. The TUI already ran
-  one worker per panel; only the snapshot mode was affected.

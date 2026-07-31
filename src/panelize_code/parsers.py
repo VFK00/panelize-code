@@ -10,7 +10,7 @@ import csv
 import io
 import json
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .config import PanelConfig
@@ -104,7 +104,7 @@ def parse_regex(stdout: str, panel: PanelConfig) -> list[Row]:
     return rows
 
 
-def _deep_get(obj: dict, dotted_key: str) -> str:
+def _deep_get(obj: dict[str, Any], dotted_key: str) -> str:
     """Resolve 'a.b.c' nested dict access. Returns '' if missing."""
     cur: object = obj
     for part in dotted_key.split("."):
@@ -115,7 +115,7 @@ def _deep_get(obj: dict, dotted_key: str) -> str:
     return str(cur)
 
 
-def _render_template(template: str, item: dict) -> str:
+def _render_template(template: str, item: dict[str, Any]) -> str:
     """Render '{key}' placeholders. Supports dotted keys via _deep_get."""
     out = template
     for match in re.finditer(r"\{([^}]+)\}", template):

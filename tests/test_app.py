@@ -43,6 +43,57 @@ async def test_app_refresh_binding() -> None:
 
 
 @pytest.mark.asyncio
+async def test_auto_refresh_callback_is_callable() -> None:
+    """Guard the cause: every interval must receive a real callable.
+
+    `DOMNode.__init__` sets an *instance* attribute `_auto_refresh`, which
+    shadows any method of that name on a subclass. A handler named
+    `_auto_refresh` therefore resolves to None, `set_interval` gets None
+    instead of a callback, and the timer fires into the void.
+    """
+    app = PanelizeApp(_mini_config(refresh=1))
+    captured: list[object] = []
+    real_set_interval = app.set_interval
+
+    def spy(interval, callback=None, *args, **kwargs):  # type: ignore[no-untyped-def]
+        captured.append(callback)
+        return real_set_interval(interval, callback, *args, **kwargs)
+
+    app.set_interval = spy  # type: ignore[method-assign]
+
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        await pilot.press("q")
+
+    assert captured, "on_mount registered no interval at all"
+    assert all(callable(cb) for cb in captured), (
+        f"interval registered with a non-callable callback: {captured}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_auto_refresh_actually_ticks() -> None:
+    """Guard the behaviour: a live dashboard must refresh on its own."""
+    app = PanelizeApp(_mini_config(refresh=1))
+    calls = {"n": 0}
+    real_refresh_all = app.refresh_all
+
+    def counting() -> None:
+        calls["n"] += 1
+        real_refresh_all()
+
+    app.refresh_all = counting  # type: ignore[method-assign]
+
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        calls["n"] = 0          # discard the initial refresh done by on_mount
+        await pilot.pause(1.3)  # one full period at refresh=1
+        await pilot.press("q")
+
+    assert calls["n"] >= 1, "auto-refresh interval never fired"
+
+
+@pytest.mark.asyncio
 async def test_app_pause_binding() -> None:
     app = PanelizeApp(_mini_config())
     async with app.run_test() as pilot:

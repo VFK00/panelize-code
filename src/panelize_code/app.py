@@ -60,7 +60,7 @@ class PanelizeApp(App[int]):
 
         self.refresh_all()
         if self.config.app.refresh > 0:
-            self.set_interval(self.config.app.refresh, self._auto_refresh)
+            self.set_interval(self.config.app.refresh, self._on_refresh_tick)
 
         # Per-panel custom refresh intervals
         for panel in self.config.panels:
@@ -71,7 +71,7 @@ class PanelizeApp(App[int]):
 
     # --- Refresh ---
 
-    def _auto_refresh(self) -> None:
+    def _on_refresh_tick(self) -> None:
         if not self.paused:
             self.refresh_all()
 

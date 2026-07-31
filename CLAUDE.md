@@ -40,7 +40,7 @@ panelize-code/
 │   ├── render.py          # render_snapshot (rich) — mode `show`
 │   ├── theme.py           # DEFAULT_THEME + BUILTIN_THEMES + COLORS
 │   └── widgets/panel.py   # PanelWidget (DataTable) — une tuile TUI
-├── tests/                 # 63 tests (7 fichiers)
+├── tests/                 # 65 tests (7 fichiers)
 ├── examples/              # dev-toolkit / devops / k8s / system .toml
 ├── pyproject.toml
 ├── README.md · CHANGELOG.md · CONTRIBUTING.md · LICENSE (MIT)
@@ -55,7 +55,7 @@ sont la seule documentation embarquee.
 
 ```bash
 uv sync --all-extras                          # install deps + extras dev
-uv run pytest                                 # 63 tests, gate coverage 70%
+uv run pytest                                 # 65 tests, gate coverage 70%
 uv run ruff check .                           # lint
 uv run mypy src/                              # type check strict
 uv tool install .                             # binaire global `panelize`
@@ -102,7 +102,8 @@ panelize validate -c my.toml
 - **`shell=True` par defaut** pour les commandes string : exécution shell réelle (pipes, `awk`, `curl` OK dans les exemples). Commande en `list[str]` → `shell=False` (pas d'interprétation shell). Outil destiné à un usage **local**, pas à exécuter des configs non fiables.
 - **Coverage gate 70%** hardcodé dans `pyproject.toml` (`--cov-fail-under=70`). `pytest` échoue sous le seuil même si tous les tests passent.
 - **`pytest-asyncio` mode `auto`** : tests async sans décorateur explicite. Combo `pytest 9.x` + `pytest-asyncio` ancien = conflit de résolution ; rester sur versions du lock.
-- **CI mypy `continue-on-error: true`** : le type check ne bloque pas la CI (`.github/workflows/ci.yml`). Lint et tests bloquent.
+- **Noms `_prefixes` sur les classes Textual** : `DOMNode.__init__` pose des attributs d'instance (`_auto_refresh`, `_auto_refresh_timer`, ...) qui **masquent silencieusement** une methode de meme nom sur une sous-classe. `self.set_interval(n, self._auto_refresh)` passe alors `None`, et Textual cree un timer sans callback sans lever d'erreur. Verifier `dir(DOMNode)` avant de nommer un handler avec un underscore. Cas reel : `journal.md` FIX-1.
+- **CI mypy bloquant** depuis le 2026-08-01 (`continue-on-error` retire). Lint, type check et tests bloquent tous les trois.
 - **Parser `regex`** : `pattern` obligatoire (model_validator rejette sinon). Groupes nommés priment sur positionnels si `columns` défini.
 - **Parser `json`** : `columns` supporte les chemins pointés (`meta.name`) via `_deep_get`. `template` rend `{key}` (dotted OK).
 - **`id` panel** : alphanumerique + `-` + `_` uniquement. IDs dupliqués → erreur de validation.

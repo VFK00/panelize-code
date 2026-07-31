@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 from datetime import datetime
+from typing import Any
 
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -40,7 +41,7 @@ class PanelWidget(Vertical):
     }
     """
 
-    def __init__(self, panel_config: PanelConfig, **kwargs: object) -> None:
+    def __init__(self, panel_config: PanelConfig, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.panel_config = panel_config
         self.border_title = f"{panel_config.icon} {panel_config.title}".strip()
