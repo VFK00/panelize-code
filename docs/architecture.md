@@ -157,4 +157,4 @@ Usage : `watch -n 30 panelize show`, cron, CI.
 
 ## Tests
 
-62 tests, 7 fichiers (`test_app`, `test_cli`, `test_config`, `test_layout`, `test_parsers`, `test_provider`, `test_render`). Gate coverage **70%**. Matrice CI : Python 3.11/3.12/3.13.
+63 tests, 7 fichiers (`test_app`, `test_cli`, `test_config`, `test_layout`, `test_parsers`, `test_provider`, `test_render`). Gate coverage **70%**. Matrice CI : Python 3.11/3.12/3.13.

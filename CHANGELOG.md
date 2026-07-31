@@ -40,3 +40,12 @@ First public release.
 
 [Unreleased]: https://github.com/VFK00/panelize-code/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/VFK00/panelize-code/releases/tag/v0.1.0
+
+## [Unreleased]
+
+### Changed
+
+- `panelize show` now runs panels concurrently (bounded thread pool, declaration
+  order preserved in the output). Serial execution paid the sum of every panel's
+  latency — measured on four 0.4s commands: **1.6s → 0.63s**. The TUI already ran
+  one worker per panel; only the snapshot mode was affected.

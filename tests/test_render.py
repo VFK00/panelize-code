@@ -51,3 +51,27 @@ def test_render_mixed() -> None:
     assert code == 2
     assert "Good" in output
     assert "Bad" in output
+
+
+def test_show_runs_panels_concurrently() -> None:
+    """Four 0.3s commands must finish in ~0.3s, not 1.2s.
+
+    `show` feeds CI and cron jobs. Run serially, a dashboard polling Docker,
+    kubectl or the network pays the sum of every latency.
+    """
+    import time
+
+    panels = [
+        PanelConfig(id=f"p{i}", title=f"P{i}", command="sleep 0.3", parser="raw")
+        for i in range(4)
+    ]
+    config = DashboardConfig(panels=panels)
+    console = Console(file=StringIO(), width=80)
+
+    started = time.monotonic()
+    render_snapshot(config, console=console)
+    elapsed = time.monotonic() - started
+
+    # Serial: ~1.2s. Concurrent: ~0.3s. Loose bound so scheduling jitter does
+    # not make this flaky, tight enough to catch a regression.
+    assert elapsed < 0.8, f"panels ran serially ({elapsed:.2f}s)"

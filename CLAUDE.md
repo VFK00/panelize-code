@@ -40,7 +40,7 @@ panelize-code/
 │   ├── render.py          # render_snapshot (rich) — mode `show`
 │   ├── theme.py           # DEFAULT_THEME + BUILTIN_THEMES + COLORS
 │   └── widgets/panel.py   # PanelWidget (DataTable) — une tuile TUI
-├── tests/                 # 62 tests (7 fichiers)
+├── tests/                 # 63 tests (7 fichiers)
 ├── examples/              # dev-toolkit / devops / k8s / system .toml
 ├── pyproject.toml
 ├── README.md · CHANGELOG.md · CONTRIBUTING.md · LICENSE (MIT)
@@ -53,7 +53,7 @@ Detail flux + parsers : `docs/architecture.md`. Choix techniques : `docs/decisio
 
 ```bash
 uv sync --all-extras                          # install deps + extras dev
-uv run pytest                                 # 62 tests, gate coverage 70%
+uv run pytest                                 # 63 tests, gate coverage 70%
 uv run ruff check .                           # lint
 uv run mypy src/                              # type check strict
 uv tool install .                             # binaire global `panelize`

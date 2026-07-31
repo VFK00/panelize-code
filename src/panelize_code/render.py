@@ -2,12 +2,28 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
 from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 
 from .config import DashboardConfig
-from .provider import run_panel
+from .provider import PanelSnapshot, run_panel
+
+# Panels are independent subprocesses: waiting on them one after another costs
+# the sum of their latencies. The TUI already runs one worker thread per panel;
+# `show` — which feeds CI and cron — did not.
+MAX_WORKERS = 8
+
+
+def _run_all(config: DashboardConfig) -> list[PanelSnapshot]:
+    """Run every panel concurrently, preserving declaration order."""
+    if not config.panels:
+        return []
+    workers = min(MAX_WORKERS, len(config.panels))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        return list(pool.map(run_panel, config.panels))
 
 
 def render_snapshot(config: DashboardConfig, console: Console | None = None) -> int:
@@ -20,8 +36,7 @@ def render_snapshot(config: DashboardConfig, console: Console | None = None) -> 
 
     panels_render = []
     any_failed = False
-    for panel_cfg in config.panels:
-        snap = run_panel(panel_cfg)
+    for panel_cfg, snap in zip(config.panels, _run_all(config), strict=True):
         if not snap.ok:
             any_failed = True
 
