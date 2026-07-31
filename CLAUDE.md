@@ -47,7 +47,9 @@ panelize-code/
 └── .github/workflows/ci.yml
 ```
 
-Detail flux + parsers : `docs/architecture.md`. Choix techniques : `docs/decisions.md`.
+`docs/` (architecture, decisions, journal, todo) est **local, non publie** — le depot
+ne le suit pas. Un clone n'en dispose donc pas : ce `CLAUDE.md` et le `README.md`
+sont la seule documentation embarquee.
 
 ## Commandes courantes
 
@@ -108,7 +110,11 @@ panelize validate -c my.toml
 
 ## Doc projet
 
-Structure : `CLAUDE.md` (racine) + `docs/{architecture,decisions,fixes}.md`. MAJ doc dans le **même commit** que le code concerné.
+Structure : `CLAUDE.md` (racine, **versionne**) + `docs/{architecture,decisions,journal,todo}.md`
+(**local, hors VCS**). MAJ doc dans le **meme commit** que le code concerne — pour `docs/`,
+cela signifie au meme moment, meme si le contenu ne part pas dans le commit.
+
+`docs/` etant hors VCS, il n'a pas le filet de git : sa seule sauvegarde est celle du poste.
 
 ## Style
 
