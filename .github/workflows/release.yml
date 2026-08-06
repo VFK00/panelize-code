@@ -1,7 +1,14 @@
 name: Release
 
-# Publishes to PyPI via trusted publishing (OIDC): no API token is stored
-# anywhere in this repository. PyPI verifies the workflow identity instead.
+# Validates a tagged release: gates, build, and tag/version agreement.
+#
+# It does NOT publish. The package is deliberately not on PyPI — installation
+# goes through a clone (see README). Publishing would need an authenticated
+# path, and none is configured on purpose.
+#
+# To publish later, add a `publish` job with `permissions: id-token: write` and
+# `pypa/gh-action-pypi-publish`, and register a trusted publisher on PyPI for
+# this repository and this workflow file. Nothing else here needs to change.
 on:
   push:
     tags: ["v*"]
@@ -51,18 +58,3 @@ jobs:
         with:
           name: dist
           path: dist/
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write # mint the OIDC token PyPI checks; nothing else is granted
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1

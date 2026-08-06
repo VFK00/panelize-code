@@ -29,15 +29,20 @@ Built with [Textual](https://textual.textualize.io). No code required — anythi
 
 ## Install
 
+Not on PyPI — install from a clone:
+
 ```bash
-# With uv (recommended)
-uv tool install panelize-code
+git clone https://github.com/VFK00/panelize-code.git
+cd panelize-code
 
-# With pipx
-pipx install panelize-code
+# With uv (recommended) — installs the `panelize` binary globally
+uv tool install .
 
-# With pip
-pip install panelize-code
+# Or with pipx
+pipx install .
+
+# Or with pip, in a virtualenv
+pip install .
 ```
 
 Requires **Python 3.11+**.
