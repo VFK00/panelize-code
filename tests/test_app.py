@@ -78,9 +78,9 @@ async def test_auto_refresh_actually_ticks() -> None:
     calls = {"n": 0}
     real_refresh_all = app.refresh_all
 
-    def counting() -> None:
+    def counting(*args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         calls["n"] += 1
-        real_refresh_all()
+        real_refresh_all(*args, **kwargs)
 
     app.refresh_all = counting  # type: ignore[method-assign]
 
@@ -91,6 +91,42 @@ async def test_auto_refresh_actually_ticks() -> None:
         await pilot.press("q")
 
     assert calls["n"] >= 1, "auto-refresh interval never fired"
+
+
+@pytest.mark.asyncio
+async def test_own_refresh_panel_leaves_global_tick_and_honours_pause() -> None:
+    """Regression: a panel with its own `refresh` was also refreshed by the global tick,
+    and its own timer ignored pause."""
+    config = DashboardConfig(
+        app=AppConfig(title="Test", refresh=30),
+        panels=[
+            PanelConfig(id="p1", title="P1", command="echo a", parser="raw"),
+            PanelConfig(id="p2", title="P2", command="echo b", parser="raw", refresh=5),
+        ],
+    )
+    app = PanelizeApp(config)
+    timers: list[object] = []
+    real_set_interval = app.set_interval
+
+    def spy(interval, callback=None, *args, **kwargs):  # type: ignore[no-untyped-def]
+        timers.append(callback)
+        return real_set_interval(interval, callback, *args, **kwargs)
+
+    app.set_interval = spy  # type: ignore[method-assign]
+    refreshed: list[str] = []
+
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        app.refresh_panel = refreshed.append  # type: ignore[method-assign]
+        app.paused = True
+        for callback in timers:
+            callback()  # type: ignore[operator]
+        assert refreshed == []  # no timer refreshes anything while paused
+        app.paused = False
+        for callback in timers:
+            callback()  # type: ignore[operator]
+        assert sorted(refreshed) == ["p1", "p2"]  # each panel once: p2 left the global tick
+        await pilot.press("q")
 
 
 @pytest.mark.asyncio

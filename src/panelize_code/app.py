@@ -62,22 +62,31 @@ class PanelizeApp(App[int]):
         if self.config.app.refresh > 0:
             self.set_interval(self.config.app.refresh, self._on_refresh_tick)
 
-        # Per-panel custom refresh intervals
+        # Per-panel custom refresh intervals: these panels leave the global tick
         for panel in self.config.panels:
             if panel.refresh and panel.refresh != self.config.app.refresh:
                 self.set_interval(
-                    panel.refresh, lambda p=panel: self.refresh_panel(p.id)
+                    panel.refresh, lambda p=panel: self._on_panel_tick(p.id)
                 )
 
     # --- Refresh ---
 
     def _on_refresh_tick(self) -> None:
         if not self.paused:
-            self.refresh_all()
+            self.refresh_all(tick=True)
 
-    def refresh_all(self) -> None:
-        """Spawn a worker per panel (parallel)."""
+    def _on_panel_tick(self, panel_id: str) -> None:
+        if not self.paused:
+            self.refresh_panel(panel_id)
+
+    def refresh_all(self, tick: bool = False) -> None:
+        """Spawn a worker per panel (parallel).
+
+        On the global tick, a panel with its own `refresh` is skipped: its own timer drives it.
+        """
         for panel in self.config.panels:
+            if tick and panel.refresh and panel.refresh != self.config.app.refresh:
+                continue
             self.refresh_panel(panel.id)
         self.last_update = datetime.now()
         self.sub_title = (

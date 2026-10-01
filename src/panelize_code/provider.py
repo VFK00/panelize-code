@@ -79,7 +79,9 @@ def run_panel(panel: PanelConfig) -> PanelSnapshot:
 
     if result.returncode != 0:
         snap.ok = False
-        snap.error = (result.stderr or result.stdout or "exit != 0").strip().splitlines()[0][:200]
+        # Strip before choosing: blank output (`echo; exit 1`) used to leave no line at all.
+        message = result.stderr.strip() or result.stdout.strip() or "exit != 0"
+        snap.error = message.splitlines()[0][:200]
         return snap
 
     snap.rows = parse(result.stdout, panel)

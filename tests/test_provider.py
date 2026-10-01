@@ -37,6 +37,19 @@ def test_run_panel_nonzero_exit() -> None:
     assert snap.exit_code == 3
 
 
+def test_run_panel_nonzero_exit_blank_output() -> None:
+    """Regression: whitespace-only output made `.splitlines()[0]` raise IndexError."""
+    for command, error in (
+        ("echo; exit 1", "exit != 0"),
+        ("echo '   ' >&2; exit 1", "exit != 0"),
+        ("echo '   ' >&2; echo boom; exit 1", "boom"),
+    ):
+        snap = run_panel(PanelConfig(id="t", title="T", command=command, parser="raw"))
+        assert not snap.ok
+        assert snap.exit_code == 1
+        assert snap.error == error
+
+
 def test_run_panel_timeout() -> None:
     panel = PanelConfig(id="t", title="T", command="sleep 5", parser="raw", timeout=1)
     snap = run_panel(panel)
