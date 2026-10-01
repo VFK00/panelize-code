@@ -40,5 +40,5 @@ refresh = 60
 [[actions]]
 name = "docker prune"
 command = "docker system prune -f"
-shortcut = "p"
+shortcut = "x"
 confirm = true

@@ -5,6 +5,23 @@ All notable changes to **panelize-code** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- An action whose `shortcut` was one of the app's own keys fired both: in
+  `examples/devops.toml`, pressing `p` paused the dashboard **and** ran
+  `docker system prune -f`. Shortcuts on `r`, `a`, `t`, `p`, `q`, `?` or `F1` are
+  now rejected when the config loads, and the example uses `x`.
+- A failing panel with blank output (`echo; exit 1`) no longer crashes with
+  `IndexError`: the error falls back to stdout, then to `exit != 0`.
+- Panels with their own `refresh` no longer also run on the global tick, and honour pause.
+
+### Added
+
+- `confirm = true` on an action now asks y/n in a modal before running it. The
+  field was accepted before but never read.
+
 ## [0.2.0] - 2026-08-01
 
 ### Fixed

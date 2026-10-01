@@ -120,7 +120,7 @@ parser = "lines"
 name = "git pull"
 command = "git pull"
 shortcut = "g"          # press 'g' in TUI to fire
-confirm = false         # ask before running (reserved)
+confirm = false         # true: ask y/n before running
 timeout = 60
 ```
 
@@ -136,7 +136,7 @@ After an action succeeds, all panels refresh automatically.
 | `p` | Pause / resume auto-refresh |
 | `q` | Quit |
 | `?` / `F1` | Help |
-| any other | Trigger an action whose `shortcut` matches |
+| any other | Trigger the action whose `shortcut` matches. A shortcut on r, a, t, p, q, ? or F1 is rejected at load |
 
 ## Modes
 

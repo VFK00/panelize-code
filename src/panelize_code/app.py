@@ -6,14 +6,54 @@ from datetime import datetime
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Grid
-from textual.widgets import Footer, Header
+from textual.containers import Grid, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Footer, Header, Label
 
-from .config import DashboardConfig
+from .config import ActionConfig, DashboardConfig
 from .layout import grid_dimensions
 from .provider import run_action, run_panel
 from .theme import BUILTIN_THEMES, DEFAULT_THEME
 from .widgets import PanelWidget
+
+
+class ConfirmScreen(ModalScreen[bool]):
+    """Yes/no gate shown before an action declared with `confirm = true`."""
+
+    BINDINGS = [
+        Binding("y", "answer(True)", "Run"),
+        Binding("n,escape", "answer(False)", "Cancel"),
+    ]
+
+    DEFAULT_CSS = """
+    ConfirmScreen {
+        align: center middle;
+    }
+    ConfirmScreen > Vertical {
+        width: auto;
+        max-width: 90%;
+        height: auto;
+        padding: 1 2;
+        border: thick $warning;
+        background: $surface;
+    }
+    """
+
+    def __init__(self, action: ActionConfig) -> None:
+        super().__init__()
+        self._action = action
+
+    def compose(self) -> ComposeResult:
+        command = self._action.command
+        shown = command if isinstance(command, str) else " ".join(command)
+        with Vertical():
+            # markup=False: the command comes from the config file, never interpret it.
+            yield Label(f"Run '{self._action.name}'?", markup=False)
+            yield Label(shown, markup=False)
+            yield Label("y run · n / esc cancel", markup=False)
+
+    def action_answer(self, run: bool) -> None:
+        self.dismiss(run)
 
 
 class PanelizeApp(App[int]):
@@ -159,8 +199,8 @@ class PanelizeApp(App[int]):
         )
 
     def on_key(self, event) -> None:  # type: ignore[no-untyped-def]
-        # Action shortcuts (single-key, lowercase)
-        if not self.config.actions:
+        # Action shortcuts (single-key, lowercase). None while a confirmation is pending.
+        if not self.config.actions or isinstance(self.screen, ConfirmScreen):
             return
         key = event.key
         for action in self.config.actions:
@@ -169,7 +209,20 @@ class PanelizeApp(App[int]):
                 event.stop()
                 return
 
-    def _run_action(self, action) -> None:  # type: ignore[no-untyped-def]
+    def _run_action(self, action: ActionConfig) -> None:
+        if not action.confirm:
+            self._start_action(action)
+            return
+
+        def answered(run: bool | None) -> None:
+            if run:
+                self._start_action(action)
+            else:
+                self.notify(f"{action.name}: cancelled", timeout=2)
+
+        self.push_screen(ConfirmScreen(action), answered)
+
+    def _start_action(self, action: ActionConfig) -> None:
         self.notify(f"Running: {action.name}...", timeout=1)
 
         def task() -> None:

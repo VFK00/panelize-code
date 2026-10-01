@@ -68,6 +68,11 @@ class PanelConfig(BaseModel):
         return self
 
 
+# Keys bound by the app itself (`PanelizeApp.BINDINGS`). An action shortcut on one of them fired
+# both: `p` paused the dashboard AND ran the action. `?` is the key as written in TOML.
+RESERVED_KEYS = frozenset({"r", "a", "t", "p", "q", "ctrl+c", "question_mark", "?", "f1"})
+
+
 class ActionConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -77,6 +82,13 @@ class ActionConfig(BaseModel):
     confirm: bool = False
     shell: bool = True
     timeout: int = Field(default=60, ge=1, le=3600)
+
+    @field_validator("shortcut")
+    @classmethod
+    def _shortcut_not_reserved(cls, v: str) -> str:
+        if v in RESERVED_KEYS:
+            raise ValueError(f"shortcut {v!r} is reserved by panelize (r, a, t, p, q, ?, F1)")
+        return v
 
 
 class DashboardConfig(BaseModel):

@@ -64,6 +64,22 @@ def test_action_minimal() -> None:
     assert a.timeout == 60
 
 
+@pytest.mark.parametrize("key", ["r", "a", "t", "p", "q", "?", "question_mark", "f1"])
+def test_action_shortcut_cannot_shadow_a_reserved_key(key: str) -> None:
+    # A shortcut on an app key used to fire both: `p` paused AND ran the action.
+    with pytest.raises(ValidationError, match="reserved"):
+        ActionConfig(name="x", command="x", shortcut=key)
+
+
+def test_reserved_keys_cover_every_app_binding() -> None:
+    from panelize_code.app import PanelizeApp
+    from panelize_code.config import RESERVED_KEYS
+
+    for binding in PanelizeApp.BINDINGS:
+        for key in binding.key.split(","):
+            assert key in RESERVED_KEYS, key
+
+
 def test_load_config_from_toml(tmp_path) -> None:
     cfg_file = tmp_path / "panelize.toml"
     cfg_file.write_text(

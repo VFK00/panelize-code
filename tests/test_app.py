@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from panelize_code.app import PanelizeApp
-from panelize_code.config import AppConfig, DashboardConfig, PanelConfig
-from panelize_code.provider import PanelSnapshot
+from panelize_code.app import ConfirmScreen, PanelizeApp
+from panelize_code.config import ActionConfig, AppConfig, DashboardConfig, PanelConfig
+from panelize_code.provider import ActionResult, PanelSnapshot
 from panelize_code.widgets import PanelWidget
 
 
@@ -185,4 +185,60 @@ async def test_app_shows_actions_menu() -> None:
         await pilot.pause()
         await pilot.press("a")
         await pilot.pause()
+        await pilot.press("q")
+
+
+def _action_config(confirm: bool) -> DashboardConfig:
+    return DashboardConfig(
+        app=AppConfig(title="Test", refresh=1),
+        panels=[PanelConfig(id="p1", title="P1", command="echo x", parser="raw")],
+        actions=[ActionConfig(name="danger", command="true", shortcut="x", confirm=confirm)],
+    )
+
+
+def _record_runs(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    runs: list[str] = []
+
+    def fake_run_action(action: ActionConfig) -> ActionResult:
+        runs.append(action.name)
+        return ActionResult(name=action.name, ok=True)
+
+    monkeypatch.setattr("panelize_code.app.run_action", fake_run_action)
+    return runs
+
+
+@pytest.mark.asyncio
+async def test_confirmed_action_waits_for_yes(monkeypatch: pytest.MonkeyPatch) -> None:
+    runs = _record_runs(monkeypatch)
+    app = PanelizeApp(_action_config(confirm=True))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        await pilot.press("x")
+        await pilot.pause()
+        assert isinstance(app.screen, ConfirmScreen)
+        await pilot.press("x")  # a second press while asking must not run it either
+        await pilot.press("n")
+        await pilot.pause()
+        await app.workers.wait_for_complete()
+        assert runs == []
+        assert not isinstance(app.screen, ConfirmScreen)
+        await pilot.press("x")
+        await pilot.pause()
+        await pilot.press("y")
+        await pilot.pause()
+        await app.workers.wait_for_complete()
+        assert runs == ["danger"]
+        await pilot.press("q")
+
+
+@pytest.mark.asyncio
+async def test_unconfirmed_action_runs_at_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    runs = _record_runs(monkeypatch)
+    app = PanelizeApp(_action_config(confirm=False))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        await pilot.press("x")
+        await pilot.pause()
+        await app.workers.wait_for_complete()
+        assert runs == ["danger"]
         await pilot.press("q")
